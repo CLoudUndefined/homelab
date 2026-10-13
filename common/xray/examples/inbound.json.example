@@ -1,0 +1,75 @@
+{
+  "inbounds": [
+    {
+      "listen": "0.0.0.0",
+      "port": 443,
+      "protocol": "vless",
+      "tag": "reality-in",
+      "settings": {
+        "clients": [
+          {
+            "id": "",
+            "email": "",
+            "flow": "xtls-rprx-vision"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "tcp",
+        "security": "reality",
+        "realitySettings": {
+          "show": false,
+          "dest": "traefik:443",
+          "xver": 1,
+          "serverNames": [],
+          "privateKey": "",
+          "minClientVer": "",
+          "maxClientVer": "",
+          "maxTimeDiff": 0,
+          "shortIds": []
+        }
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ]
+      }
+    },
+    {
+      "listen": "0.0.0.0",
+      "port": 443,
+      "protocol": "hysteria",
+      "tag": "hysteria-in",
+      "settings": {
+        "version": 2,
+        "clients": [
+          {
+            "auth": "",
+            "email": ""
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "hysteria",
+        "security": "tls",
+        "tlsSettings": {
+          "serverName": "",
+          "alpn": ["h3"],
+          "certificates": [
+            {
+              "certificateFile": "/certs/example.com/cert.pem",
+              "keyFile": "/certs/example.com/key.pem"
+            }
+          ]
+        },
+        "hysteriaSettings": {
+          "version": 2
+        }
+      }
+    }
+  ]
+}

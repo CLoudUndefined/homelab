@@ -1,0 +1,13 @@
+{
+  "routing": {
+    "rules": [
+      { "protocol": "bittorrent", "outboundTag": "block" },
+      {
+        "domain": ["geosite:category-gov-ru", "domain:ru"],
+        "outboundTag": "warp"
+      },
+      { "ip": ["geoip:ru"], "outboundTag": "warp" }
+    ],
+    "domainStrategy": "IPIfNonMatch"
+  }
+}

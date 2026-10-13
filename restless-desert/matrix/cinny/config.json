@@ -1,0 +1,9 @@
+{
+  "defaultHomeserver": 0,
+  "homeserverList": ["chat.example.com"],
+  "allowCustomHomeservers": false,
+  "hashRouter": {
+    "enabled": true,
+    "basename": "/"
+  }
+}

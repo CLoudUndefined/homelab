@@ -1,0 +1,32 @@
+---
+- name: Installation docker on server (checked for Debian 12-13)
+  hosts: ready
+  become: true
+  tasks:
+    - name: Install prequisites
+      apt:
+        name:
+          - ca-certificates
+          - curl
+          - python3-debian
+        state: present
+
+    - name: Add the repository to apt sources
+      deb822_repository:
+        name: docker
+        uris: https://download.docker.com/linux/debian
+        suites: "{{ ansible_facts['distribution_release'] }}"
+        components: stable
+        architectures: "{{ 'amd64' if ansible_facts['architecture'] == 'x86_64' else 'arm64' }}"
+        signed_by: https://download.docker.com/linux/debian/gpg
+    
+    - name: Install debian packages
+      apt:
+        update_cache: true
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present

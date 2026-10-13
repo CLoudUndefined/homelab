@@ -1,0 +1,34 @@
+services:
+  navidrome:
+    image: deluan/navidrome:latest
+    user: ${GID}:${UID}
+    restart: unless-stopped
+    volumes:
+      - ./navidrome/data:/data
+      - /srv/music-share:/music
+      - /srv/music-playlists:/music/playlists
+    networks:
+      - traefik-public
+    environment:
+      - ND_LASTFM_APIKEY=${LASTFM_APIKEY}
+      - ND_LASTFM_SECRET=${LASTFM_SECRET}
+      - ND_SPOTIFY_ID=${SPOTIFY_ID}
+      - ND_SPOTIFY_SECRET=${SPOTIFY_SECRET}
+      - ND_ENABLEINSIGHTSCOLLECTOR=false
+      - ND_ENABLEDOWNLOADS=false
+      - ND_AUTOTRANSCODEDOWNLOAD=true
+      - ND_CONFIGFILE=/data/navidrome.toml
+      - ND_MUSICFOLDER=/music
+      - ND_PLAYLISTSPATH=/music/playlists
+      - ND_PROMETHEUS_ENABLED=true
+      - ND_PROMETHEUS_METRICSPATH=/metrics_${NAVIDROME_PROMETHEUS_SECRET_KEY}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.navidrome.rule=Host(`${NAVIDROME_DOMAIN}`)"
+      - "traefik.http.routers.navidrome.entrypoints=websecure"
+      - "traefik.http.routers.navidrome.tls.certresolver=myresolver"
+      - "traefik.http.services.navidrome.loadbalancer.server.port=4533"
+networks:
+  traefik-public:
+    external: true

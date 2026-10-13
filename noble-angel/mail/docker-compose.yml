@@ -1,0 +1,84 @@
+services:
+  stalwart:
+    image: stalwartlabs/stalwart:v0.16.15-alpine
+    restart: always
+    hostname: ${MAIL_HOSTNAME}
+    # environment:
+      # - "STALWART_RECOVERY_ADMIN=${STALWART_ADMIN_LOGIN}:${STALWART_ADMIN_PASSWORD}"
+    ports:
+      - "25:25/tcp"
+      - "143:143/tcp"
+      - "465:465/tcp"
+      - "587:587/tcp"
+      - "993:993/tcp"
+    networks:
+      - traefik-public
+    volumes:
+      - ./stalwart-config:/etc/stalwart
+      - stalwart-data:/var/lib/stalwart
+      - ../traefik/certs:/certs:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.stalwart.rule=Host(`${MAIL_HOSTNAME}`)"
+      - "traefik.http.routers.stalwart.entrypoints=websecure"
+      - "traefik.http.routers.stalwart.tls.certresolver=myresolver"
+      - "traefik.http.services.stalwart.loadbalancer.server.port=8080"
+
+  cypht-db:
+    image: mariadb:10
+    restart: always
+    networks:
+      - traefik-public
+    volumes:
+      - ./cypht/data/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${CYPHT_DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=cypht
+      - MYSQL_USER=cypht
+      - MYSQL_PASSWORD=${CYPHT_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ucypht", "-p${CYPHT_DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  cypht:
+    image: cypht/cypht:2.11.1
+    restart: always
+    depends_on:
+      cypht-db:
+        condition: service_healthy
+    networks:
+      - traefik-public
+    environment:
+      - AUTH_USERNAME=${CYPHT_ADMIN_LOGIN}
+      - AUTH_PASSWORD=${CYPHT_ADMIN_PASSWORD}
+      - DB_CONNECTION_TYPE=host
+      - DB_DRIVER=mysql
+      - DB_HOST=cypht-db
+      - DB_NAME=cypht
+      - DB_USER=cypht
+      - DB_PASS=${CYPHT_DB_PASSWORD}
+      - SESSION_TYPE=DB
+      - USER_CONFIG_TYPE=DB
+    volumes:
+      - ./cypht/data/users:/var/lib/hm3/users
+      - ./cypht/data/log/nginx:/var/log/nginx
+      - ./cypht/data/log/php:/var/log/php
+      - ./cypht/data/log/supervisord:/var/log/supervisord
+      - ./cypht/data/fonts:/usr/local/share/cypht/site/fonts
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.cypht.rule=Host(`${WEBMAIL_HOSTNAME}`)"
+      - "traefik.http.routers.cypht.entrypoints=websecure"
+      - "traefik.http.routers.cypht.tls.certresolver=myresolver"
+      - "traefik.http.services.cypht.loadbalancer.server.port=80"
+
+volumes:
+  stalwart-data:
+
+networks:
+  traefik-public:
+    external: true

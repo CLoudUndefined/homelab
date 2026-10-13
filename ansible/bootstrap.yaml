@@ -1,0 +1,53 @@
+---
+- name: Boostraping new server, for Debian 12-13 (checked for this)
+  hosts: new
+  tasks:
+    - name: Update system package
+      apt:
+        update_cache: true
+        upgrade: dist
+
+    - name: Install sudo
+      apt:
+        name: sudo
+
+    - name: Add user teiwo
+      user:
+        name: teiwo
+        comment: Teiwo
+        create_home: yes
+        shell: /bin/bash
+        groups: sudo
+
+    - name: Deploy sudoers with nopasswd for teiwo
+      copy:
+        dest: /etc/sudoers.d/standard
+        content: |
+          teiwo ALL=(ALL:ALL) NOPASSWD:ALL
+        owner: root
+        group: root
+        mode: '0440'
+        validate: /usr/sbin/visudo -cf %s
+
+    - name: Add for teiwo ssh key
+      ansible.posix.authorized_key:
+        user: teiwo
+        state: present
+        key: "{{ lookup('file', '/home/teiwo/.ssh/keys/' ~ country ~ '/' ~ host_name ~ '/id_ed25519.pub') }}"
+
+    - name: Deploy sshd config to server
+      template:
+        src: ./configs/sshd-standard.conf.j2
+        dest: /etc/ssh/sshd_config.d/99-standard.conf
+        owner: root
+        group: root
+        mode: '0600'
+        validate: /usr/sbin/sshd -t -f %s
+      notify:
+        - Reload sshd
+
+  handlers:
+    - name: Reload sshd
+      service:
+        name: sshd
+        state: reloaded

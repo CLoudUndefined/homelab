@@ -1,0 +1,47 @@
+services:
+  freshrss:
+    image: freshrss/freshrss:latest
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Moscow
+      CRON_MIN: "*/15"
+    volumes:
+      - freshrss_data:/var/www/FreshRSS/data
+      - freshrss_extensions:/var/www/FreshRSS/extensions
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.freshrss.rule=Host(`${RSS_DOMAIN}`)"
+      - "traefik.http.routers.freshrss.entrypoints=websecure"
+      - "traefik.http.routers.freshrss.tls.certresolver=myresolver"
+      - "traefik.http.services.freshrss.loadbalancer.server.port=80"
+
+  wallabag:
+    image: wallabag/wallabag:latest
+    restart: unless-stopped
+    environment:
+      SYMFONY__ENV__DOMAIN_NAME: "https://${WALLABAG_DOMAIN}"
+      SYMFONY__ENV__SERVER_NAME: "EXAMPLE"
+      POPULATE_DATABASE: "true"
+    volumes:
+      - wallabag_data:/var/www/wallabag/data
+      - wallabag_images:/var/www/wallabag/web/assets/images
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wallabag.rule=Host(`${WALLABAG_DOMAIN}`)"
+      - "traefik.http.routers.wallabag.entrypoints=websecure"
+      - "traefik.http.routers.wallabag.tls.certresolver=myresolver"
+      - "traefik.http.services.wallabag.loadbalancer.server.port=80"
+
+volumes:
+  freshrss_data:
+  freshrss_extensions:
+  wallabag_data:
+  wallabag_images:
+
+networks:
+  traefik-public:
+    external: true

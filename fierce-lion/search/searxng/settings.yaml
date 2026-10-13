@@ -1,0 +1,306 @@
+use_default_settings: true
+
+general:
+  instance_name: "EXAMPLE"
+  enable_metrics: false
+
+server:
+  secret_key: "3a2..."
+  base_url: "https://search.example.com"
+  limiter: false
+  public_instance: false
+  method: "GET"
+  image_proxy: true
+
+valkey:
+  url: redis://redis:6379/0
+
+search:
+  safe_search: 0
+  autocomplete: "duckduckgo"
+  default_lang: "auto"
+  ban_time_on_fail: 5
+  max_ban_time_on_fail: 120
+  suspended_times:
+    SearxEngineAccessDenied: 180
+    SearxEngineCaptcha: 3600
+    SearxEngineTooManyRequests: 180
+    cf_SearxEngineCaptcha: 1296000
+    cf_SearxEngineAccessDenied: 86400
+    recaptcha_SearxEngineCaptcha: 604800
+  formats:
+    - html
+    - json
+
+outgoing:
+  request_timeout: 6.0
+  max_request_timeout: 15.0
+  pool_connections: 100
+  pool_maxsize: 20
+  enable_http2: true
+  retries: 1
+
+categories_as_tabs:
+  general:
+  dev:
+  network:
+  security:
+  science:
+  ai:
+  it:
+  news:
+  social media:
+
+ui:
+  default_theme: simple
+  theme_args:
+    simple_style: light
+  results_on_new_tab: true
+  advanced_search: true
+  favicon_resolver: "duckduckgo"
+
+engines:
+  - name: google
+    engine: google
+    weight: 4
+    disabled: false
+    time_range_support: true
+
+  - name: bing
+    engine: bing
+    weight: 1
+    disabled: false
+    time_range_support: true
+
+  - name: brave
+    engine: brave
+    shortcut: br
+    weight: 3
+    disabled: false
+    time_range_support: true
+
+  - name: duckduckgo
+    engine: duckduckgo
+    weight: 2
+    disabled: false
+    time_range_support: true
+
+  - name: startpage
+    engine: startpage
+    weight: 2
+    disabled: false
+
+  - name: wikipedia
+    engine: wikipedia
+    weight: 2
+    categories: [general]
+    disabled: false
+
+  - name: mojeek
+    engine: mojeek
+    weight: 1
+    disabled: false
+    retries: 1
+
+  - name: qwant
+    engine: qwant
+    weight: 1
+    disabled: false
+    retries: 1
+
+  - name: stackoverflow
+    engine: stackexchange
+    api_site: stackoverflow
+    weight: 4
+    categories: [it, dev]
+    disabled: false
+
+  - name: github
+    engine: github
+    weight: 3
+    categories: [dev]
+    disabled: false
+
+  - name: github code
+    engine: github_code
+    shortcut: ghc
+    categories: [dev]
+    disabled: false
+    weight: 3
+
+  - name: gitlab
+    engine: gitlab
+    shortcut: gl
+    categories: [dev]
+    disabled: false
+    weight: 2
+
+  - name: ai stackexchange
+    engine: stackexchange
+    api_site: ai
+    shortcut: seai
+    categories: [ai, dev]
+    disabled: false
+    weight: 3
+
+  - name: datascience stackexchange
+    engine: stackexchange
+    api_site: datascience
+    shortcut: seds
+    categories: [ai, science]
+    disabled: false
+    weight: 3
+
+  - name: pypi
+    engine: pypi
+    shortcut: pypi
+    categories: [dev]
+    disabled: false
+    weight: 2
+
+  - name: arxiv
+    engine: arxiv
+    weight: 4
+    categories: [science]
+    disabled: false
+
+  - name: semantic_scholar
+    engine: semantic_scholar
+    weight: 3
+    categories: [science]
+    disabled: false
+
+  - name: google_news
+    engine: google_news
+    weight: 3
+    categories: [news]
+    disabled: false
+    time_range_support: true
+
+  - name: huggingface
+    engine: huggingface
+    shortcut: hf
+    categories: [ai, science]
+    disabled: false
+    weight: 3
+
+  - name: huggingface datasets
+    engine: huggingface
+    huggingface_endpoint: datasets
+    shortcut: hfd
+    categories: [science, ai]
+    disabled: false
+    weight: 2
+
+  - name: huggingface spaces
+    engine: huggingface
+    huggingface_endpoint: spaces
+    shortcut: hfs
+    categories: [ai]
+    disabled: false
+    weight: 2
+
+  - name: reddit
+    engine: reddit
+    shortcut: re
+    categories: [it, social media]
+    disabled: false
+    weight: 2
+    time_range_support: true
+
+  - name: openalex
+    engine: openalex
+    shortcut: oa
+    categories: [science]
+    disabled: false
+    weight: 3
+    mailto: "mail@example.com"
+
+  - name: core
+    engine: core
+    shortcut: co
+    categories: [science]
+    disabled: false
+    weight: 3
+
+  - name: crossref
+    engine: crossref
+    shortcut: cr
+    categories: [science]
+    disabled: false
+    weight: 2
+    timeout: 30
+
+  - name: springer nature
+    engine: springer
+    shortcut: sn
+    categories: [science]
+    disabled: false
+    weight: 2
+
+  - name: marginalia
+    engine: marginalia
+    shortcut: ma
+    categories: [it, general]
+    disabled: false
+    weight: 1
+
+  - name: karmasearch
+    engine: karmasearch
+    disabled: true
+
+  - name: karmasearch videos
+    engine: karmasearch
+    disabled: true
+
+  - name: dblp
+    engine: dblp
+    shortcut: dblp
+    categories: [security, science]
+    weight: 4
+    disabled: false
+
+  - name: google scholar
+    engine: google_scholar
+    shortcut: gs
+    categories: [science, it]
+    weight: 4
+    disabled: false
+
+  - name: ietf datatracker
+    engine: json_engine
+    shortcut: ietf
+    categories: [networking, dev]
+    search_url: "https://datatracker.ietf.org/api/v1/doc/document/?name__icontains={query}&format=json"
+    results_query: "objects"
+    url_prefix: "https://datatracker.ietf.org/doc/"
+    url_query: "name"
+    title_query: "title"
+    content_query: "abstract"
+    disabled: false
+    weight: 4
+
+  - name: iacr eprint
+    engine: xpath
+    shortcut: iacr
+    categories: [science, security]
+    search_url: "https://eprint.iacr.org/search?q={query}"
+    results_xpath: "//div[contains(@class, 'search-result') or contains(@class, 'paper')]"
+    url_xpath: ".//a/@href"
+    title_xpath: ".//b/text() | .//strong/text() | .//a/text()"
+    content_xpath: ".//div[contains(@class, 'abstract')]/text() | .//p/text()"
+    disabled: false
+    weight: 3
+
+  - name: ieee xplore
+    engine: xpath
+    shortcut: ieee
+    categories: [it, science]
+    paging: true
+    search_url: "https://www.mojeek.com/search?q={query}&s={pageno}&foc=ieeexplore.ieee.org"
+    results_xpath: "//ul[@class='ob-marks']/li"
+    url_xpath: ".//a[@class='ob']/@href"
+    title_xpath: ".//a[@class='ob']/text()"
+    content_xpath: ".//p[@class='s']/text()"
+    disabled: false
+    weight: 2

@@ -1,0 +1,32 @@
+services:
+  xray:
+    image: teddysun/xray:26.6.27
+    container_name: xray
+    ports:
+      - "443:443/tcp"
+      - "443:443/udp"
+    command: xray run -confdir /etc/xray/conf.d
+    volumes:
+      - ./xray/conf.d:/etc/xray/conf.d:ro
+      - ./xray/geo:/usr/local/share/xray
+      - ./xray/logs:/var/log/xray
+      # live certdumper for this node runs in traefik/docker-compose.yml
+      - ../traefik/certs:/certs:ro
+    networks:
+      - traefik-public
+      - proxy-net
+    restart: unless-stopped
+
+  xray-exporter:
+    image: anatolykopyl/xray-exporter:latest
+    container_name: xray-exporter
+    restart: unless-stopped
+    command:
+      - "--xray-endpoint=xray:18080"
+    networks:
+      - proxy-net
+
+networks:
+  proxy-net:
+  traefik-public:
+    external: true

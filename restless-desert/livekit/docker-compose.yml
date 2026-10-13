@@ -1,0 +1,65 @@
+services:
+  livekit:
+    image: livekit/livekit-server:master
+    container_name: livekit
+    restart: unless-stopped
+    command: --config /etc/livekit.yaml
+    environment:
+      - "LIVEKIT_KEYS=${LIVEKIT_KEY}: ${LIVEKIT_SECRET}"
+    ports:
+      - "7881:7881/tcp"
+      - "7882:7882/udp"
+    volumes:
+      - ./livekit/livekit.yaml:/etc/livekit.yaml:ro
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.rtc.rule=Host(`${RTC_DOMAIN}`)"
+      - "traefik.http.routers.rtc.entrypoints=websecure"
+      - "traefik.http.routers.rtc.tls.certresolver=myresolver"
+      - "traefik.http.services.rtc.loadbalancer.server.port=7880"
+
+  lk-jwt:
+    image: ghcr.io/element-hq/lk-jwt-service:latest
+    container_name: lk-jwt
+    restart: unless-stopped
+    environment:
+      - LIVEKIT_URL=wss://${RTC_DOMAIN}
+      - LIVEKIT_KEY=${LIVEKIT_KEY}
+      - LIVEKIT_SECRET=${LIVEKIT_SECRET}
+      - LIVEKIT_FULL_ACCESS_HOMESERVERS=${MATRIX_DOMAIN}
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.rtc-jwt.rule=Host(`${RTC_DOMAIN}`) && PathPrefix(`/sfu/get`)"
+      - "traefik.http.routers.rtc-jwt.entrypoints=websecure"
+      - "traefik.http.routers.rtc-jwt.tls.certresolver=myresolver"
+      - "traefik.http.services.rtc-jwt.loadbalancer.server.port=8080"
+      - "traefik.http.middlewares.rtc-jwt-cors.headers.accesscontrolalloworiginlist=https://${MATRIX_DOMAIN},https://${ELEMENT_CALL_DOMAIN},https://${ELEMENT_DOMAIN}"
+      - "traefik.http.middlewares.rtc-jwt-cors.headers.accesscontrolallowmethods=GET,POST,OPTIONS"
+      - "traefik.http.middlewares.rtc-jwt-cors.headers.accesscontrolallowheaders=Content-Type,Authorization"
+      - "traefik.http.routers.rtc-jwt.middlewares=rtc-jwt-cors"
+
+  element-call:
+    image: ghcr.io/element-hq/element-call:latest
+    volumes:
+      - ./element-call/config.json:/app/public/config.json:ro
+    container_name: element-call
+    restart: unless-stopped
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.element-call.rule=Host(`${ELEMENT_CALL_DOMAIN}`)"
+      - "traefik.http.routers.element-call.entrypoints=websecure"
+      - "traefik.http.routers.element-call.tls.certresolver=myresolver"
+      - "traefik.http.services.element-call.loadbalancer.server.port=8080"
+
+networks:
+  traefik-public:
+    external: true

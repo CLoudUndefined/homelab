@@ -1,0 +1,58 @@
+services:
+  traefik:
+    image: traefik:v3.6.8
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80/tcp"
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.proxyprotocol.trustedips=127.0.0.1/32,172.16.0.0/12,192.168.0.0/16"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_MAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addRoutersLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+      - "--entryPoints.metrics.address=:8082"
+      - "--metrics.prometheus.entryPoint=metrics"
+      - "--log=true"
+      - "--log.level=INFO"
+      - "--ping=true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+      - ./certs:/certs
+    networks:
+      - traefik-public
+      - monitoring-internal
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  certdumper:
+    image: ghcr.io/kereis/traefik-certs-dumper:latest
+    container_name: certdumper
+    restart: unless-stopped
+    command: --restart-containers mail-stalwart-1
+    depends_on:
+      - traefik
+    volumes:
+      - ./letsencrypt:/traefik:ro
+      - ./certs:/output
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  traefik-public:
+    external: true
+  monitoring-internal:
+    external: true

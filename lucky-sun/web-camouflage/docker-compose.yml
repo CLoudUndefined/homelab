@@ -1,0 +1,30 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx:/etc/nginx/conf.d/
+      - ./www:/var/www
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.floodfill.rule=Host(`floodfill.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.floodfill.entrypoints=websecure"
+      - "traefik.http.routers.floodfill.tls.certresolver=myresolver"
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+      - "traefik.http.routers.lightsout.rule=Host(`lightsout.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.lightsout.entrypoints=websecure"
+      - "traefik.http.routers.lightsout.tls.certresolver=myresolver"
+      - "traefik.http.routers.lockpicker.rule=Host(`lockpicker.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.lockpicker.entrypoints=websecure"
+      - "traefik.http.routers.lockpicker.tls.certresolver=myresolver"
+      - "traefik.http.routers.lightsout.service=nginx"
+      - "traefik.http.routers.lockpicker.service=nginx"
+      - "traefik.http.routers.floodfill.service=nginx"
+
+networks:
+  traefik-public:
+    external: true

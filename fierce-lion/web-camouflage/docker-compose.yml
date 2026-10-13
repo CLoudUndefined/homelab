@@ -1,0 +1,46 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx:/etc/nginx/conf.d/
+      - ./www:/var/www
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+      - "traefik.http.routers.cursor.rule=Host(`cursor.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.cursor.entrypoints=websecure"
+      - "traefik.http.routers.cursor.tls.certresolver=myresolver"
+      - "traefik.http.routers.cursor.service=nginx"
+      - "traefik.http.routers.icon.rule=Host(`icon.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.icon.entrypoints=websecure"
+      - "traefik.http.routers.icon.tls.certresolver=myresolver"
+      - "traefik.http.routers.icon.service=nginx"
+      - "traefik.http.routers.key.rule=Host(`key.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.key.entrypoints=websecure"
+      - "traefik.http.routers.key.tls.certresolver=myresolver"
+      - "traefik.http.routers.key.service=nginx"
+      - "traefik.http.routers.rubiks.rule=Host(`rubiks.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.rubiks.entrypoints=websecure"
+      - "traefik.http.routers.rubiks.tls.certresolver=myresolver"
+      - "traefik.http.routers.rubiks.service=nginx"
+      - "traefik.http.routers.shulte.rule=Host(`shulte.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.shulte.entrypoints=websecure"
+      - "traefik.http.routers.shulte.tls.certresolver=myresolver"
+      - "traefik.http.routers.shulte.service=nginx"
+      - "traefik.http.routers.tower.rule=Host(`tower.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.tower.entrypoints=websecure"
+      - "traefik.http.routers.tower.tls.certresolver=myresolver"
+      - "traefik.http.routers.tower.service=nginx"
+      - "traefik.http.routers.wordle.rule=Host(`wordle.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.wordle.entrypoints=websecure"
+      - "traefik.http.routers.wordle.tls.certresolver=myresolver"
+      - "traefik.http.routers.wordle.service=nginx"
+
+networks:
+  traefik-public:
+    external: true

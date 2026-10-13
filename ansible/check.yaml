@@ -1,0 +1,6 @@
+---
+- name: Check server is ready and connection
+  hosts: ready
+  tasks:
+    - name: Ping the servers
+      ping:

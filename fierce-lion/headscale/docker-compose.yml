@@ -1,0 +1,70 @@
+services:
+  headscale:
+    image: headscale/headscale:v0.28.0
+    container_name: headscale
+    restart: always
+    volumes:
+      - ./headscale/config:/etc/headscale
+      - ./headscale/lib:/var/lib/headscale
+      - ./headscale/run:/var/run/headscale
+    command: serve
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.headscale.rule=Host(`${HEADSCALE_DOMAIN}`)"
+      - "traefik.http.routers.headscale.entrypoints=websecure"
+      - "traefik.http.routers.headscale.tls.certresolver=myresolver"
+      - "traefik.http.services.headscale.loadbalancer.server.port=8080"
+      - "me.tale.headplane.target=headscale"
+    networks:
+      - traefik-public
+      - headscale-metrics
+    healthcheck:
+      test: ["CMD", "headscale", "health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  tailscale-exporter:
+    image: adinhodovic/tailscale-exporter:latest
+    container_name: tailscale-exporter
+    restart: unless-stopped
+    environment:
+      - HEADSCALE_ADDRESS=headscale:50443
+      - HEADSCALE_API_KEY=${HEADSCALE_API_KEY}
+      - HEADSCALE_INSECURE=true
+    networks:
+      - headscale-metrics
+      - monitoring-internal
+    depends_on:
+      headscale:
+        condition: service_healthy
+
+  headplane:
+    image: ghcr.io/tale/headplane:0.6.2
+    container_name: headplane
+    restart: unless-stopped
+    depends_on:
+      headscale:
+        condition: service_healthy
+    volumes:
+      - ./headplane/config:/etc/headplane
+      - ./headplane/data:/var/lib/headplane
+      - ./headscale/config:/etc/headscale
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.headplane.rule=Host(`${HEADPLANE_DOMAIN}`)"
+      - "traefik.http.routers.headplane.entrypoints=websecure"
+      - "traefik.http.routers.headplane.tls.certresolver=myresolver"
+      - "traefik.http.services.headplane.loadbalancer.server.port=3000"
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true
+  headscale-metrics:
+    external: true
+  monitoring-internal:
+    external: true

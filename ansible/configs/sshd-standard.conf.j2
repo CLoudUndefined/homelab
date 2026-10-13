@@ -1,0 +1,21 @@
+ListenAddress 0.0.0.0
+ListenAddress ::
+
+Port {{ new_ssh_port }}
+
+AllowUsers teiwo
+
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+PubkeyAuthentication yes
+PermitRootLogin no
+PermitEmptyPasswords no
+X11Forwarding no
+
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+MaxAuthTries 3
+LoginGraceTime 1m
+
+GatewayPorts yes

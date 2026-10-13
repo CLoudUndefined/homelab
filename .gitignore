@@ -1,0 +1,5 @@
+ansible/inventory.ini
+**/.env
+*/xray/xray/conf.d/
+*/xray/xray/geo/
+*/xray/xray/logs/

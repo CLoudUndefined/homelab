@@ -1,0 +1,42 @@
+services:
+  xray:
+    image: teddysun/xray:26.6.27
+    container_name: xray
+    ports:
+      - "443:443/tcp"
+    command: xray run -confdir /etc/xray/conf.d
+    volumes:
+      # fill at deploy time from common/xray; exactly one routing file
+      - ./xray/conf.d:/etc/xray/conf.d:ro
+      - ./xray/geo:/usr/local/share/xray
+      - ./xray/logs:/var/log/xray
+      # - ./certs:/certs:ro
+    networks:
+      - traefik-public
+      - proxy-net
+    restart: unless-stopped
+
+  xray-exporter:
+    image: anatolykopyl/xray-exporter:latest
+    container_name: xray-exporter
+    restart: unless-stopped
+    command:
+      - "--xray-endpoint=xray:18080"
+    networks:
+      - proxy-net
+
+  # uncomment for TLS-certificate inbounds (hysteria2, plain TLS)
+  # certdumper:
+  #   image: ghcr.io/kereis/traefik-certs-dumper:latest
+  #   container_name: certdumper
+  #   restart: unless-stopped
+  #   command: --restart-containers xray
+  #   volumes:
+  #     - ../traefik/letsencrypt:/traefik:ro
+  #     - ./certs:/output
+  #     - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  proxy-net:
+  traefik-public:
+    external: true

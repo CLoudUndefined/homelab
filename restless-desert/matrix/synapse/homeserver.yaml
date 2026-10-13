@@ -1,0 +1,90 @@
+server_name: "chat.example.com"
+public_baseurl: "https://chat.example.com/"
+pid_file: /data/homeserver.pid
+
+listeners:
+  - port: 8008
+    resources:
+    - compress: false
+      names:
+      - client
+      - federation
+    tls: false
+    type: http
+    x_forwarded: true
+  - port: 9092
+    type: metrics
+    bind_addresses: ['0.0.0.0']
+
+database:
+  name: psycopg2
+  args:
+    user: matrix
+    password: 46Y...
+    host: db
+    database: matrix
+    cp_min: 5
+    cp_max: 10
+
+turn_uris:
+  - "turn:chat.example.com?transport=udp"
+  - "turn:chat.example.com?transport=tcp"
+turn_shared_secret: "5cc..."
+turn_user_lifetime: 86400000
+turn_allow_guests: false
+
+log_config: "/data/chat.example.com.log.config"
+media_store_path: /data/media_store
+
+registration_shared_secret: "V-n..."
+macaroon_secret_key: "NSq..."
+form_secret: "-A0..."
+
+report_stats: false
+
+enable_metrics: true
+
+signing_key_path: "/data/chat.example.com.signing.key"
+trusted_key_servers:
+  - server_name: "matrix.org"
+
+enable_registration: false
+
+user_directory:
+  enabled: true
+  search_all_users: true
+  prefer_local_users: true
+
+experimental_features:
+  msc3401_enabled: true
+  msc3916_enabled: true
+  msc3266_enabled: true
+  msc4222_enabled: true
+
+max_event_delay_duration: 24h
+
+rc_message:
+  per_second: 0.5
+  burst_count: 30
+
+rc_delayed_event_mgmt:
+  per_second: 1
+  burst_count: 20
+
+extra_well_known_client_content:
+  "org.matrix.msc4143.rtc_foci":
+    - type: "livekit"
+      livekit_service_url: "https://rtc.example.com"
+
+email:
+  smtp_host: "mail.example.com"
+  smtp_port: 587
+  smtp_user: "noreply@example.com"
+  smtp_pass: "akz..."
+  require_transport_security: true
+  notif_from: "Matrix <noreply@example.com>"
+  app_name: "Matrix"
+  enable_notifs: true
+  notif_for_new_users: true
+
+# vim:ft=yaml

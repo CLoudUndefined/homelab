@@ -1,0 +1,16 @@
+---
+- name: Add user for controlling docker
+  hosts: ready
+  become: true
+  tasks:
+    - name: Create user dockermgr
+      user:
+        name: dockermgr
+        comment: Docker manager
+        create_home: yes
+        shell: /bin/bash
+        groups:
+          - sudo
+          - docker
+        password: "{{ dockermgr_password | password_hash('sha512', 'dockermgrsalt') }}"
+        

@@ -1,0 +1,24 @@
+{
+  "outbounds": [
+    {
+      "tag": "warp",
+      "protocol": "wireguard",
+      "settings": {
+        "secretKey": "",
+        "address": [],
+        "peers": [
+          {
+            "publicKey": "",
+            "allowedIPs": [
+              "0.0.0.0/0",
+              "::/0"
+            ],
+            "endpoint": "engage.cloudflareclient.com:2408"
+          }
+        ],
+        "reserved": [],
+        "mtu": 1280
+      }
+    }
+  ]
+}

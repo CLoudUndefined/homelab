@@ -1,0 +1,22 @@
+{
+  "default_server_config": {
+    "m.homeserver": {
+      "base_url": "https://chat.example.com",
+      "server_name": "chat.example.com"
+    }
+  },
+
+  "element_call": {
+    "url": "https://element-call.example.com"
+  },
+
+  "disable_custom_urls": true,
+  "disable_guests": true,
+  "enable_registration": false,
+
+  "features": {
+    "feature_video_rooms": true,
+    "feature_group_calls": true,
+    "feature_element_call_video_rooms": true
+  }
+}

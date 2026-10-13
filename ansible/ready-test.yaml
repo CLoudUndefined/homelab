@@ -1,0 +1,7 @@
+---
+- name: Test ready server, for Debian 12-13 (checked for this)
+  hosts: ready
+  become: true
+  tasks:
+    - name: Check whoami
+      command: whoami

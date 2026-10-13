@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cursor</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: #111;
+        font-family: Arial, sans-serif;
+        cursor: none;
+      }
+      #game-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+      #start-message {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 24px;
+        text-align: center;
+        z-index: 100;
+      }
+      #score {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        color: white;
+        font-size: 24px;
+        z-index: 100;
+      }
+      #game-over {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: red;
+        font-size: 36px;
+        text-align: center;
+        display: none;
+        z-index: 100;
+      }
+      .player {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background-color: white;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+      }
+      .ghost {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background-color: rgba(255, 50, 50, 0.8);
+        transform: translate(-50%, -50%);
+      }
+      #restart-button {
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: white;
+        color: black;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <div id="start-message">Move the cursor to the center to start</div>
+      <div id="score">Score: 0</div>
+      <div id="game-over">
+        <div>Game Over!</div>
+        <div id="final-score">Your score: 0</div>
+        <button id="restart-button">Play Again</button>
+      </div>
+    </div>
+
+    <script>
+      const gameConfig = {
+        spawnInterval: 3000,
+        ghostSpeed: 0.95,
+        pointsPerSecond: 10,
+      };
+
+      const gameContainer = document.getElementById("game-container");
+      const startMessage = document.getElementById("start-message");
+      const scoreDisplay = document.getElementById("score");
+      const gameOverDisplay = document.getElementById("game-over");
+      const finalScoreDisplay = document.getElementById("final-score");
+      const restartButton = document.getElementById("restart-button");
+
+      let player;
+      let gameStarted = false;
+      let score = 0;
+      let scoreInterval;
+      let spawnInterval;
+      let mousePath = [];
+      let ghosts = [];
+      let gameOver = false;
+      let centerPoint = {
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+      };
+
+      function init() {
+        score = 0;
+        scoreDisplay.textContent = `Score: ${score}`;
+        mousePath = [];
+        ghosts = [];
+        gameOver = false;
+
+        if (!player) {
+          player = document.createElement("div");
+          player.className = "player";
+          gameContainer.appendChild(player);
+        }
+
+        centerPoint = {
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+        };
+
+        document.querySelectorAll(".ghost").forEach((ghost) => ghost.remove());
+
+        startMessage.style.display = "block";
+        gameOverDisplay.style.display = "none";
+
+        gameStarted = false;
+      }
+
+      function handleMouseMove(e) {
+        const mouseX = e.clientX;
+        const mouseY = e.clientY;
+
+        player.style.left = `${mouseX}px`;
+        player.style.top = `${mouseY}px`;
+
+        if (!gameStarted) {
+          const distanceToCenter = Math.sqrt(
+            Math.pow(mouseX - centerPoint.x, 2) +
+              Math.pow(mouseY - centerPoint.y, 2),
+          );
+
+          if (distanceToCenter < 20) {
+            startGame();
+          }
+        } else if (!gameOver) {
+          mousePath.push({
+            x: mouseX,
+            y: mouseY,
+            timestamp: Date.now(),
+          });
+
+          checkCollisions(mouseX, mouseY);
+        }
+      }
+
+      function startGame() {
+        gameStarted = true;
+        startMessage.style.display = "none";
+
+        mousePath = [
+          {
+            x: centerPoint.x,
+            y: centerPoint.y,
+            timestamp: Date.now(),
+          },
+        ];
+
+        spawnInterval = setInterval(spawnGhost, gameConfig.spawnInterval);
+
+        scoreInterval = setInterval(() => {
+          if (!gameOver) {
+            score += gameConfig.pointsPerSecond / 10;
+            scoreDisplay.textContent = `Score: ${Math.floor(score)}`;
+          }
+        }, 100);
+      }
+
+      function endGame() {
+        gameOver = true;
+        clearInterval(spawnInterval);
+        clearInterval(scoreInterval);
+
+        finalScoreDisplay.textContent = `Your score: ${Math.floor(score)}`;
+        gameOverDisplay.style.display = "block";
+      }
+
+      function spawnGhost() {
+        if (gameOver) return;
+
+        const ghost = document.createElement("div");
+        ghost.className = "ghost";
+        ghost.style.left = `${centerPoint.x}px`;
+        ghost.style.top = `${centerPoint.y}px`;
+        gameContainer.appendChild(ghost);
+
+        const ghostData = {
+          element: ghost,
+          pathIndex: 0,
+          startTime: Date.now(),
+          lastPos: { x: centerPoint.x, y: centerPoint.y },
+        };
+
+        ghosts.push(ghostData);
+      }
+
+      function updateGhosts() {
+        if (gameOver || !gameStarted || mousePath.length < 2) return;
+
+        ghosts.forEach((ghost) => {
+          const ghostTime =
+            (Date.now() - ghost.startTime) * gameConfig.ghostSpeed;
+
+          let nextIndex = ghost.pathIndex + 1;
+          while (
+            nextIndex < mousePath.length &&
+            mousePath[nextIndex].timestamp - mousePath[0].timestamp < ghostTime
+          ) {
+            ghost.pathIndex = nextIndex;
+            nextIndex++;
+          }
+
+          if (ghost.pathIndex >= mousePath.length - 1) {
+            ghost.element.remove();
+            ghosts = ghosts.filter((g) => g !== ghost);
+            return;
+          }
+
+          const currentPoint = mousePath[ghost.pathIndex];
+          const nextPoint =
+            mousePath[
+              nextIndex < mousePath.length ? nextIndex : ghost.pathIndex
+            ];
+
+          const currentTime = currentPoint.timestamp - mousePath[0].timestamp;
+          const nextTime = nextPoint.timestamp - mousePath[0].timestamp;
+          const timeFraction =
+            (ghostTime - currentTime) / (nextTime - currentTime || 1);
+
+          const interpX =
+            currentPoint.x +
+            (nextPoint.x - currentPoint.x) * Math.min(timeFraction, 1);
+          const interpY =
+            currentPoint.y +
+            (nextPoint.y - currentPoint.y) * Math.min(timeFraction, 1);
+
+          ghost.lastPos.x = ghost.lastPos.x * 0.2 + interpX * 0.8;
+          ghost.lastPos.y = ghost.lastPos.y * 0.2 + interpY * 0.8;
+
+          ghost.element.style.left = `${ghost.lastPos.x}px`;
+          ghost.element.style.top = `${ghost.lastPos.y}px`;
+        });
+      }
+
+      function checkCollisions(mouseX, mouseY) {
+        if (gameOver) return;
+
+        for (const ghost of ghosts) {
+          const ghostRect = ghost.element.getBoundingClientRect();
+          const ghostCenterX = ghostRect.left + ghostRect.width / 2;
+          const ghostCenterY = ghostRect.top + ghostRect.height / 2;
+
+          const distance = Math.sqrt(
+            Math.pow(mouseX - ghostCenterX, 2) +
+              Math.pow(mouseY - ghostCenterY, 2),
+          );
+
+          const collisionDistance = 11;
+
+          if (distance < collisionDistance) {
+            endGame();
+            break;
+          }
+        }
+      }
+
+      function gameLoop() {
+        updateGhosts();
+        requestAnimationFrame(gameLoop);
+      }
+
+      document.addEventListener("mousemove", handleMouseMove);
+      restartButton.addEventListener("click", init);
+
+      window.addEventListener("load", () => {
+        init();
+        gameLoop();
+      });
+
+      window.addEventListener("resize", () => {
+        centerPoint = {
+          x: window.innerWidth / 2,
+          y: window.innerHeight / 2,
+        };
+      });
+    </script>
+  </body>
+</html>
