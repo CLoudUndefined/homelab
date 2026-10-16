@@ -1,0 +1,44 @@
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d/
+      - ./www:/var/www
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.services.nginx.loadbalancer.server.port=80"
+      - "traefik.http.routers.volcano.rule=Host(`volcano.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.volcano.entrypoints=websecure"
+      - "traefik.http.routers.volcano.tls.certresolver=myresolver"
+      - "traefik.http.routers.volcano.service=nginx"
+      - "traefik.http.routers.collision.rule=Host(`collision.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.collision.entrypoints=websecure"
+      - "traefik.http.routers.collision.tls.certresolver=myresolver"
+      - "traefik.http.routers.collision.service=nginx"
+      - "traefik.http.routers.commit-duel.rule=Host(`commit-duel.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.commit-duel.entrypoints=websecure"
+      - "traefik.http.routers.commit-duel.tls.certresolver=myresolver"
+      - "traefik.http.routers.commit-duel.service=nginx"
+      - "traefik.http.routers.chain.rule=Host(`chain.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.chain.entrypoints=websecure"
+      - "traefik.http.routers.chain.tls.certresolver=myresolver"
+      - "traefik.http.routers.chain.service=nginx"
+      - "traefik.http.routers.3sum.rule=Host(`3sum.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.3sum.entrypoints=websecure"
+      - "traefik.http.routers.3sum.tls.certresolver=myresolver"
+      - "traefik.http.routers.3sum.service=nginx"
+      - "traefik.http.routers.nim.rule=Host(`nim.${CAMO_DOMAIN}`)"
+      - "traefik.http.routers.nim.entrypoints=websecure"
+      - "traefik.http.routers.nim.tls.certresolver=myresolver"
+      - "traefik.http.routers.nim.service=nginx"
+
+networks:
+  traefik-public:
+    external: true
