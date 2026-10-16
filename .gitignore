@@ -3,5 +3,3 @@ ansible/inventory.ini
 */xray/xray/conf.d/
 */xray/xray/geo/
 */xray/xray/logs/
-README.example.md
-posts-style.example.md
